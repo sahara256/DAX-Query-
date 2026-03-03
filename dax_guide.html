@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DAX Query Guide – Power BI</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=IBM+Plex+Mono:wght@400;600&family=Lora:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0f14;
+    --surface: #141720;
+    --border: #1f2433;
+    --accent: #f5a623;
+    --accent2: #4fc3f7;
+    --accent3: #a78bfa;
+    --text: #e8eaf0;
+    --muted: #7a8099;
+    --beginner: #4caf50;
+    --intermediate: #ff9800;
+    --advanced: #f44336;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Lora', Georgia, serif;
+    line-height: 1.7;
+  }
+
+  /* Noise overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  header {
+    padding: 60px 40px 40px;
+    border-bottom: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+
+  header::after {
+    content: 'DAX';
+    position: absolute;
+    right: -20px;
+    top: -10px;
+    font-family: 'Syne', sans-serif;
+    font-size: 200px;
+    font-weight: 800;
+    color: rgba(245,166,35,0.04);
+    pointer-events: none;
+    line-height: 1;
+  }
+
+  .tag {
+    display: inline-block;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--accent);
+    border: 1px solid var(--accent);
+    padding: 3px 10px;
+    margin-bottom: 16px;
+  }
+
+  h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(32px, 5vw, 64px);
+    font-weight: 800;
+    line-height: 1.1;
+    color: #fff;
+  }
+
+  h1 span { color: var(--accent); }
+
+  .subtitle {
+    color: var(--muted);
+    font-style: italic;
+    margin-top: 10px;
+    font-size: 18px;
+  }
+
+  .nav {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    padding: 20px 40px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .nav a {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+    text-decoration: none;
+    padding: 5px 12px;
+    border: 1px solid var(--border);
+    transition: all 0.2s;
+  }
+
+  .nav a:hover { color: var(--accent); border-color: var(--accent); }
+
+  .container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 40px;
+  }
+
+  .level-badge {
+    display: inline-block;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    border-radius: 2px;
+    margin-bottom: 8px;
+  }
+
+  .badge-beginner { background: rgba(76,175,80,0.15); color: var(--beginner); border: 1px solid var(--beginner); }
+  .badge-intermediate { background: rgba(255,152,0,0.15); color: var(--intermediate); border: 1px solid var(--intermediate); }
+  .badge-advanced { background: rgba(244,67,54,0.15); color: var(--advanced); border: 1px solid var(--advanced); }
+
+  section {
+    margin-bottom: 60px;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 30px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .section-number {
+    font-family: 'Syne', sans-serif;
+    font-size: 48px;
+    font-weight: 800;
+    color: var(--border);
+    line-height: 1;
+  }
+
+  h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: 28px;
+    font-weight: 700;
+    color: #fff;
+  }
+
+  h3 {
+    font-family: 'Syne', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--accent2);
+    margin: 28px 0 10px;
+  }
+
+  p { margin-bottom: 14px; color: #c5c9d6; }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    padding: 24px;
+    margin: 20px 0;
+    position: relative;
+  }
+
+  .card.blue { border-left-color: var(--accent2); }
+  .card.purple { border-left-color: var(--accent3); }
+
+  .card h4 {
+    font-family: 'Syne', sans-serif;
+    font-size: 16px;
+    color: #fff;
+    margin-bottom: 10px;
+  }
+
+  pre {
+    background: #0a0c10;
+    border: 1px solid var(--border);
+    border-top: 2px solid var(--accent);
+    padding: 20px 24px;
+    overflow-x: auto;
+    margin: 16px 0;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    line-height: 1.6;
+  }
+
+  code {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    color: var(--accent);
+    background: rgba(245,166,35,0.08);
+    padding: 2px 6px;
+  }
+
+  pre code {
+    color: #e8eaf0;
+    background: none;
+    padding: 0;
+  }
+
+  .kw { color: #569cd6; }
+  .fn { color: #dcdcaa; }
+  .str { color: #ce9178; }
+  .num { color: #b5cea8; }
+  .cm { color: #6a9955; font-style: italic; }
+  .col { color: #9cdcfe; }
+  .tbl { color: #4ec9b0; }
+
+  .tip {
+    background: rgba(79,195,247,0.05);
+    border: 1px solid rgba(79,195,247,0.2);
+    padding: 16px 20px;
+    margin: 16px 0;
+    font-size: 14px;
+    color: #9ee6ff;
+  }
+
+  .tip::before {
+    content: '💡 ';
+  }
+
+  .warn {
+    background: rgba(244,67,54,0.05);
+    border: 1px solid rgba(244,67,54,0.2);
+    padding: 16px 20px;
+    margin: 16px 0;
+    font-size: 14px;
+    color: #ff9999;
+  }
+
+  .warn::before { content: '⚠️ '; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    margin: 20px 0;
+  }
+
+  th {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    background: var(--surface);
+    color: var(--accent);
+    padding: 10px 14px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+
+  td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    color: #c5c9d6;
+    vertical-align: top;
+  }
+
+  tr:hover td { background: rgba(255,255,255,0.02); }
+
+  .divider {
+    height: 1px;
+    background: linear-gradient(90deg, var(--accent), transparent);
+    margin: 40px 0;
+  }
+
+  footer {
+    text-align: center;
+    padding: 40px;
+    color: var(--muted);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    border-top: 1px solid var(--border);
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="tag">Power BI</div>
+  <h1>Master <span>DAX</span><br>Queries</h1>
+  <p class="subtitle">From first formula to advanced intelligence — a complete guide</p>
+</header>
+
+<nav class="nav">
+  <a href="#intro">Intro</a>
+  <a href="#basics">Basics</a>
+  <a href="#aggregation">Aggregation</a>
+  <a href="#logical">Logical</a>
+  <a href="#filter">FILTER & CALCULATE</a>
+  <a href="#time">Time Intelligence</a>
+  <a href="#iterator">Iterators</a>
+  <a href="#context">Row/Filter Context</a>
+  <a href="#advanced">Advanced</a>
+  <a href="#variables">Variables</a>
+  <a href="#tips">Best Practices</a>
+</nav>
+
+<div class="container">
+
+  <!-- INTRO -->
+  <section id="intro">
+    <div class="section-header">
+      <div class="section-number">00</div>
+      <div>
+        <span class="level-badge badge-beginner">Beginner</span>
+        <h2>What is DAX?</h2>
+      </div>
+    </div>
+
+    <p><strong>DAX (Data Analysis Expressions)</strong> is the formula language used in Power BI, Power Pivot, and Analysis Services. It lets you create custom calculations, aggregations, and business logic on top of your data model.</p>
+
+    <div class="card">
+      <h4>Two types of DAX calculations</h4>
+      <p><strong>Measures</strong> — Dynamic calculations evaluated in the context of filters (e.g., Total Sales). They don't add a column to the table.</p>
+      <p><strong>Calculated Columns</strong> — Row-by-row calculations stored in the table (e.g., Profit = Sales - Cost).</p>
+    </div>
+
+    <div class="tip">DAX is case-insensitive. <code>SUM</code> = <code>sum</code> = <code>Sum</code>. But use UPPERCASE for functions by convention.</div>
+
+    <h3>DAX Syntax Rules</h3>
+    <pre><code><span class="cm">-- Table references use square brackets for columns</span>
+<span class="tbl">Sales</span>[<span class="col">Revenue</span>]      <span class="cm">-- Fully qualified: Table[Column]</span>
+[<span class="col">Revenue</span>]         <span class="cm">-- Short form (inside same table context)</span>
+
+<span class="cm">-- Functions follow this pattern:</span>
+<span class="fn">FUNCTION_NAME</span>( argument1, argument2 )
+
+<span class="cm">-- Measures are defined with :=</span>
+Total Sales := <span class="fn">SUM</span>( <span class="tbl">Sales</span>[<span class="col">Revenue</span>] )</code></pre>
+  </section>
+
+  <!-- BASICS -->
+  <section id="basics">
+    <div class="section-header">
+      <div class="section-number">01</div>
+      <div>
+        <span class="level-badge badge-beginner">Beginner</span>
+        <h2>Basic Functions</h2>
+      </div>
+    </div>
+
+    <h3>SUM, AVERAGE, MIN, MAX, COUNT</h3>
+    <pre><code><span class="cm">-- Sum all values in a column</span>
+Total Revenue := <span class="fn">SUM</span>( <span class="tbl">Sales</span>[<span class="col">Revenue</span>] )
+
+<span class="cm">-- Average of a column</span>
+Avg Sale := <span class="fn">AVERAGE</span>( <span class="tbl">Sales</span>[<span class="col">Revenue</span>] )
+
+<span class="cm">-- Minimum and Maximum</span>
+Min Price := <span class="fn">MIN</span>( <span class="tbl">Products</span>[<span class="col">Price</span>] )
+Max Price := <span class="fn">MAX</span>( <span class="tbl">Products</span>[<span class="col">Price</span>] )
+
+<span class="cm">-- Count rows (non-blank)</span>
+Transaction Count := <span class="fn">COUNT</span>( <span class="tbl">Sales</span>[<span class="col">OrderID</span>] )
+
+<span class="cm">-- Count all rows including blanks</span>
+Row Count := <span class="fn">COUNTA</span>( <span class="tbl">Sales</span>[<span class="col">OrderID</span>] )
+
+<span class="cm">-- Count distinct values</span>
+Unique Customers := <span class="fn">DISTINCTCOUNT</span>( <span class="tbl">Sales</span>[<span class="col">CustomerID</span>] )</code></pre>
+
+    <h3>Basic Arithmetic</h3>
+    <pre><code><span class="cm">-- Calculated Column: Profit</span>
+Profit = <span class="tbl">Sales</span>[<span class="col">Revenue</span>] - <span class="tbl">Sales</span>[<span class="col">Cost</span>]
+
+<span class="cm">-- Calculated Column: Profit Margin %</span>
+Profit Margin = <span class="fn">DIVIDE</span>( <span class="tbl">Sales</span>[<span class="col">Profit</span>], <span class="tbl">Sales</span>[<span class="col">Revenue</span>], <span class="num">0</span> )
+
+<span class="cm">-- DIVIDE is safer than "/" — handles division by zero</span>
+<span class="cm">-- Third argument = value to return when dividing by 0</span></code></pre>
+
+    <div class="tip">Always use <code>DIVIDE(numerator, denominator, 0)</code> instead of the <code>/</code> operator to avoid divide-by-zero errors.</div>
+  </section>
+
+  <!-- AGGREGATION -->
+  <section id="aggregation">
+    <div class="section-header">
+      <div class="section-number">02</div>
+      <div>
+        <span class="level-badge badge-beginner">Beginner</span>
+        <h2>Text & Date Functions</h2>
+      </div>
+    </div>
+
+    <h3>Text Functions</h3>
+    <pre><code><span class="cm">-- Concatenate text</span>
+Full Name = <span class="fn">CONCATENATE</span>( <span class="tbl">Customers</span>[<span class="col">FirstName</span>], <span class="tbl">Customers</span>[<span class="col">LastName</span>] )
+<span class="cm">-- Or use &</span>
+Full Name = <span class="tbl">Customers</span>[<span class="col">FirstName</span>] & <span class="str">" "</span> & <span class="tbl">Customers</span>[<span class="col">LastName</span>]
+
+<span class="cm">-- Upper / Lower case</span>
+Upper Name = <span class="fn">UPPER</span>( <span class="tbl">Customers</span>[<span class="col">Name</span>] )
+
+<span class="cm">-- Extract characters</span>
+First3 = <span class="fn">LEFT</span>( <span class="tbl">Products</span>[<span class="col">SKU</span>], <span class="num">3</span> )
+Last3  = <span class="fn">RIGHT</span>( <span class="tbl">Products</span>[<span class="col">SKU</span>], <span class="num">3</span> )
+
+<span class="cm">-- Find and Replace</span>
+Clean = <span class="fn">SUBSTITUTE</span>( <span class="tbl">Customers</span>[<span class="col">Phone</span>], <span class="str">"-"</span>, <span class="str">""</span> )
+
+<span class="cm">-- String length</span>
+Name Length = <span class="fn">LEN</span>( <span class="tbl">Customers</span>[<span class="col">Name</span>] )</code></pre>
+
+    <h3>Date Functions</h3>
+    <pre><code><span class="cm">-- Extract parts of a date</span>
+Year  = <span class="fn">YEAR</span>( <span class="tbl">Sales</span>[<span class="col">OrderDate</span>] )
+Month = <span class="fn">MONTH</span>( <span class="tbl">Sales</span>[<span class="col">OrderDate</span>] )
+Day   = <span class="fn">DAY</span>( <span class="tbl">Sales</span>[<span class="col">OrderDate</span>] )
+
+<span class="cm">-- Today's date</span>
+Today = <span class="fn">TODAY</span>()
+Now   = <span class="fn">NOW</span>()
+
+<span class="cm">-- Days between dates</span>
+Days Since Order = <span class="fn">DATEDIFF</span>( <span class="tbl">Sales</span>[<span class="col">OrderDate</span>], <span class="fn">TODAY</span>(), <span class="kw">DAY</span> )
+
+<span class="cm">-- Format date as text</span>
+Month Year = <span class="fn">FORMAT</span>( <span class="tbl">Sales</span>[<span class="col">OrderDate</span>], <span class="str">"MMM YYYY"</span> )</code></pre>
+  </section>
+
+  <!-- LOGICAL -->
+  <section id="logical">
+    <div class="section-header">
+      <div class="section-number">03</div>
+      <div>
+        <span class="level-badge badge-beginner">Beginner</span>
+        <h2>Logical Functions</h2>
+      </div>
+    </div>
+
+    <h3>IF</h3>
+    <pre><code><span class="cm">-- Basic IF</span>
+Profit Flag = <span class="fn">IF</span>( <span class="tbl">Sales</span>[<span class="col">Profit</span>] > <span class="num">0</span>, <span class="str">"Profitable"</span>, <span class="str">"Loss"</span> )
+
+<span class="cm">-- Nested IF</span>
+Rating = <span class="fn">IF</span>( <span class="tbl">Sales</span>[<span class="col">Score</span>] >= <span class="num">90</span>, <span class="str">"A"</span>,
+          <span class="fn">IF</span>( <span class="tbl">Sales</span>[<span class="col">Score</span>] >= <span class="num">75</span>, <span class="str">"B"</span>,
+          <span class="fn">IF</span>( <span class="tbl">Sales</span>[<span class="col">Score</span>] >= <span class="num">60</span>, <span class="str">"C"</span>, <span class="str">"F"</span> )))</code></pre>
+
+    <h3>SWITCH</h3>
+    <pre><code><span class="cm">-- SWITCH is cleaner than nested IF</span>
+Quarter Label =
+<span class="fn">SWITCH</span>(
+    <span class="fn">MONTH</span>( <span class="tbl">Sales</span>[<span class="col">OrderDate</span>] ),
+    <span class="num">1</span>, <span class="str">"Q1"</span>, <span class="num">2</span>, <span class="str">"Q1"</span>, <span class="num">3</span>, <span class="str">"Q1"</span>,
+    <span class="num">4</span>, <span class="str">"Q2"</span>, <span class="num">5</span>, <span class="str">"Q2"</span>, <span class="num">6</span>, <span class="str">"Q2"</span>,
+    <span class="num">7</span>, <span class="str">"Q3"</span>, <span class="num">8</span>, <span class="str">"Q3"</span>, <span class="num">9</span>, <span class="str">"Q3"</span>,
+    <span class="str">"Q4"</span>  <span class="cm">-- Default value</span>
+)
+
+<span class="cm">-- SWITCH(TRUE()) replaces complex nested IFs</span>
+Performance =
+<span class="fn">SWITCH</span>( <span class="kw">TRUE</span>(),
+    <span class="tbl">Sales</span>[<span class="col">Revenue</span>] > <span class="num">10000</span>, <span class="str">"Excellent"</span>,
+    <span class="tbl">Sales</span>[<span class="col">Revenue</span>] > <span class="num">5000</span>,  <span class="str">"Good"</span>,
+    <span class="tbl">Sales</span>[<span class="col">Revenue</span>] > <span class="num">1000</span>,  <span class="str">"Average"</span>,
+    <span class="str">"Poor"</span>
+)</code></pre>
+
+    <h3>AND, OR, NOT</h3>
+    <pre><code><span class="cm">-- Logical operators</span>
+Premium Customer =
+<span class="fn">IF</span>( <span class="fn">AND</span>( <span class="tbl">Customers</span>[<span class="col">Orders</span>] > <span class="num">10</span>, <span class="tbl">Customers</span>[<span class="col">TotalSpend</span>] > <span class="num">5000</span> ),
+    <span class="str">"Premium"</span>, <span class="str">"Standard"</span> )
+
+<span class="cm">-- Using && and || operators (same as AND/OR)</span>
+Eligible = <span class="fn">IF</span>( <span class="tbl">Customers</span>[<span class="col">Age</span>] >= <span class="num">18</span> && <span class="tbl">Customers</span>[<span class="col">Active</span>] = <span class="kw">TRUE</span>(), <span class="str">"Yes"</span>, <span class="str">"No"</span> )</code></pre>
+  </section>
+
+  <!-- FILTER & CALCULATE -->
+  <section id="filter">
+    <div class="section-header">
+      <div class="section-number">04</div>
+      <div>
+        <span class="level-badge badge-intermediate">Intermediate</span>
+        <h2>FILTER & CALCULATE</h2>
+      </div>
+    </div>
+
+    <p>These are the most powerful functions in DAX. <code>CALCULATE</code> modifies the filter context of a calculation.</p>
+
+    <h3>CALCULATE</h3>
+    <pre><code><span class="cm">-- Syntax: CALCULATE(expression, filter1, filter2, ...)</span>
+
+<span class="cm">-- Total sales for only "Electronics" category</span>
+Electronics Sales :=
+<span class="fn">CALCULATE</span>(
+    <span class="fn">SUM</span>( <span class="tbl">Sales</span>[<span class="col">Revenue</span>] ),
+    <span class="tbl">Products</span>[<span class="col">Category</span>] = <span class="str">"Electronics"</span>
+)
+
+<span class="cm">-- Multiple filters (AND logic)</span>
+East Electronics :=
+<span class="fn">CALCULATE</span>(
+    <span class="fn">SUM</span>( <span class="tbl">Sales</span>[<span class="col">Revenue</span>] ),
+    <span class="tbl">Products</span>[<span class="col">Category</span>] = <span class="str">"Electronics"</span>,
+    <span class="tbl">Regions</span>[<span class="col">Area</span>] = <span class="str">"East"</span>
+)</code></pre>
+
+    <h3>FILTER</h3>
+    <pre><code><span class="cm">-- FILTER returns a table of rows that match a condition</span>
+<span class="cm">-- Used inside CALCULATE for complex conditions</span>
+
+High Value Sales :=
+<span class="fn">CALCULATE</span>(
+    <span class="fn">SUM</span>( <span class="tbl">Sales</span>[<span class="col">Revenue</span>] ),
+    <span class="fn">FILTER</span>( <span class="tbl">Sales</span>, <span class="tbl">Sales</span>[<span class="col">Revenue</span>] > <span class="num">1000</span> )
+)
+
+<span class="cm">-- FILTER with multiple conditions</span>
+Premium Orders :=
+<span class="fn">CALCULATE</span>(
+    <span class="fn">COUNTROWS</span>( <span class="tbl">Sales</span> ),
+    <span class="fn">FILTER</span>(
+        <span class="tbl">Sales</span>,
+        <span class="tbl">Sales</span>[<span class="col">Revenue</span>] > <span class="num">500</span> && <span class="tbl">Sales</span>[<span class="col">Quantity</span>] > <span class="num">2</span>
+    )
+)</code></pre>
+
+    <h3>ALL & ALLEXCEPT</h3>
+    <pre><code><span class="cm">-- ALL removes all filters from a table/column</span>
+% of Total Sales :=
+<span class="fn">DIVIDE</span>(
+    <span class="fn">SUM</span>( <span class="tbl">Sales</span>[<span class="col">Revenue</span>] ),
+    <span class="fn">CALCULATE</span>( <span class="fn">SUM</span>( <span class="tbl">Sales</span>[<span class="col">Revenue</span>] ), <span class="fn">ALL</span>( <span class="tbl">Sales</span> ) )
+)
+
+<span class="cm">-- ALLEXCEPT keeps filters on specified columns</span>
+% of Category :=
+<span class="fn">DIVIDE</span>(
+    <span class="fn">SUM</span>( <span class="tbl">Sales</span>[<span class="col">Revenue</span>] ),
+    <span class="fn">CALCULATE</span>( <span class="fn">SUM</span>( <span class="tbl">Sales</span>[<span class="col">Revenue</span>] ), <span class="fn">ALLEXCEPT</span>( <span class="tbl">Products</span>, <span class="tbl">Products</span>[<span class="col">Category</span>] ) )
+)</code></pre>
+
+    <div class="tip">Think of CALCULATE as "evaluate this expression but first apply these filter changes to the model."</div>
+  </section>
+
+  <!-- TIME INTELLIGENCE -->
+  <section id="time">
+    <div class="section-header">
+      <div class="section-number">05</div>
+      <div>
+        <span class="level-badge badge-intermediate">Intermediate</span>
+        <h2>Time Intelligence</h2>
+      </div>
+    </div>
+
+    <div class="warn">Time intelligence functions require a proper <strong>Date table</strong> marked as a Date Table in Power BI with a continuous date column.</div>
+
+    <h3>Year-to-Date (YTD), Quarter-to-Date (QTD), Month-to-Date (MTD)</h3>
+    <pre><code><span class="cm">-- Year to Date Sales</span>
+Sales YTD :=
+<span class="fn">CALCULATE</span>(
+    <span class="fn">SUM</span>( <span class="tbl">Sales</span>[<span class="col">Revenue</span>] ),
+    <span class="fn">DATESYTD</span>( <span class="tbl">Calendar</span>[<span class="col">Date</span>] )
+)
+
+<span class="cm">-- Quarter to Date</span>
+Sales QTD :=
+<span class="fn">CALCULATE</span>( <span class="fn">SUM</span>( <span class="tbl">Sales</span>[<span class="col">Revenue</span>] ), <span class="fn">DATESQTD</span>( <span class="tbl">Calendar</span>[<span class="col">Date</span>] ) )
+
+<span class="cm">-- Month to Date</span>
+Sales MTD :=
+<span class="fn">CALCULATE</span>( <span class="fn">SUM</span>( <span class="tbl">Sales</span>[<span class="col">Revenue</span>] ), <span class="fn">DATESMTD</span>( <span class="tbl">Calendar</span>[<span class="col">Date</span>] ) )
+
+<span class="cm">-- YTD with custom fiscal year ending June 30</span>
+Sales Fiscal YTD :=
+<span class="fn">CALCULATE</span>(
+    <span class="fn">SUM</span>( <span class="tbl">Sales</span>[<span class="col">Revenue</span>] ),
+    <span class="fn">DATESYTD</span>( <span class="tbl">Calendar</span>[<span class="col">Date</span>], <span class="str">"06-30"</span> )
+)</code></pre>
+
+    <h3>Same Period Last Year (SPLY)</h3>
+    <pre><code><span class="cm">-- Sales in the same period last year</span>
+Sales LY :=
+<span class="fn">CALCULATE</span>(
+    <span class="fn">SUM</span>( <span class="tbl">Sales</span>[<span class="col">Revenue</span>] ),
+    <span class="fn">SAMEPERIODLASTYEAR</span>( <span class="tbl">Calendar</span>[<span class="col">Date</span>] )
+)
+
+<span class="cm">-- Year-over-Year Growth %</span>
+YoY Growth % :=
+<span class="fn">DIVIDE</span>(
+    [Total Sales] - [Sales LY],
+    [Sales LY],
+    <span class="num">0</span>
+)</code></pre>
+
+    <h3>DATEADD — Flexible Period Shifting</h3>
+    <pre><code><span class="cm">-- Sales 1 month ago</span>
+Sales Last Month :=
+<span class="fn">CALCULATE</span>(
+    <span class="fn">SUM</span>( <span class="tbl">Sales</span>[<span class="col">Revenue</span>] ),
+    <span class="fn">DATEADD</span>( <span class="tbl">Calendar</span>[<span class="col">Date</span>], <span class="num">-1</span>, <span class="kw">MONTH</span> )
+)
+
+<span class="cm">-- Sales 3 months ago</span>
+Sales 3M Ago :=
+<span class="fn">CALCULATE</span>(
+    <span class="fn">SUM</span>( <span class="tbl">Sales</span>[<span class="col">Revenue</span>] ),
+    <span class="fn">DATEADD</span>( <span class="tbl">Calendar</span>[<span class="col">Date</span>], <span class="num">-3</span>, <span class="kw">MONTH</span> )
+)</code></pre>
+
+    <h3>Rolling 12-Month Total</h3>
+    <pre><code>Rolling 12M Sales :=
+<span class="fn">CALCULATE</span>(
+    <span class="fn">SUM</span>( <span class="tbl">Sales</span>[<span class="col">Revenue</span>] ),
+    <span class="fn">DATESINPERIOD</span>(
+        <span class="tbl">Calendar</span>[<span class="col">Date</span>],
+        <span class="fn">LASTDATE</span>( <span class="tbl">Calendar</span>[<span class="col">Date</span>] ),
+        <span class="num">-12</span>,
+        <span class="kw">MONTH</span>
+    )
+)</code></pre>
+  </section>
+
+  <!-- ITERATORS -->
+  <section id="iterator">
+    <div class="section-header">
+      <div class="section-number">06</div>
+      <div>
+        <span class="level-badge badge-intermediate">Intermediate</span>
+        <h2>Iterator Functions (X Functions)</h2>
+      </div>
+    </div>
+
+    <p>Iterator functions loop over each row of a table, evaluate an expression for each row, and then aggregate the result. They are identified by the "X" suffix: <code>SUMX</code>, <code>AVERAGEX</code>, <code>MAXX</code>, <code>MINX</code>, <code>COUNTX</code>.</p>
+
+    <h3>SUMX</h3>
+    <pre><code><span class="cm">-- SUMX: calculate per-row then sum</span>
+<span class="cm">-- Total Revenue = Quantity * Unit Price (per row)</span>
+Total Revenue :=
+<span class="fn">SUMX</span>(
+    <span class="tbl">Sales</span>,                                       <span class="cm">-- Table to iterate</span>
+    <span class="tbl">Sales</span>[<span class="col">Quantity</span>] * <span class="tbl">Sales</span>[<span class="col">UnitPrice</span>]           <span class="cm">-- Expression per row</span>
+)
+
+<span class="cm">-- Compare to: this would be WRONG because columns can't multiply directly</span>
+<span class="cm">-- Wrong: SUM(Sales[Quantity]) * SUM(Sales[UnitPrice])  ← not the same!</span></code></pre>
+
+    <h3>AVERAGEX</h3>
+    <pre><code><span class="cm">-- Average order value (per transaction)</span>
+Avg Order Value :=
+<span class="fn">AVERAGEX</span>(
+    <span class="tbl">Sales</span>,
+    <span class="tbl">Sales</span>[<span class="col">Quantity</span>] * <span class="tbl">Sales</span>[<span class="col">UnitPrice</span>]
+)</code></pre>
+
+    <h3>RANKX</h3>
+    <pre><code><span class="cm">-- Rank products by total sales (1 = highest)</span>
+Sales Rank :=
+<span class="fn">RANKX</span>(
+    <span class="fn">ALL</span>( <span class="tbl">Products</span>[<span class="col">ProductName</span>] ),    <span class="cm">-- Table to rank against</span>
+    [Total Sales],                    <span class="cm">-- Expression to rank by</span>
+    ,                                 <span class="cm">-- Value (blank = use expression)</span>
+    <span class="kw">DESC</span>,                             <span class="cm">-- Order (DESC = highest = rank 1)</span>
+    <span class="kw">Dense</span>                             <span class="cm">-- Tie-breaking: Dense skips no ranks</span>
+)</code></pre>
+  </section>
+
+  <!-- ROW/FILTER CONTEXT -->
+  <section id="context">
+    <div class="section-header">
+      <div class="section-number">07</div>
+      <div>
+        <span class="level-badge badge-intermediate">Intermediate</span>
+        <h2>Row Context vs Filter Context</h2>
+      </div>
+    </div>
+
+    <div class="card">
+      <h4>🔵 Filter Context</h4>
+      <p>The set of active filters when a measure is evaluated — determined by slicers, report filters, rows/columns in a matrix visual. Measures always run in filter context.</p>
+    </div>
+
+    <div class="card blue">
+      <h4>🟡 Row Context</h4>
+      <p>Exists when iterating over a table (like SUMX or in a Calculated Column). It knows "which row I'm currently on."</p>
+    </div>
+
+    <h3>RELATED — Cross-table lookups in row context</h3>
+    <pre><code><span class="cm">-- In a Calculated Column on Sales table,</span>
+<span class="cm">-- get the Category from related Products table</span>
+Category = <span class="fn">RELATED</span>( <span class="tbl">Products</span>[<span class="col">Category</span>] )
+
+<span class="cm">-- RELATED follows the "many" side to the "one" side</span>
+<span class="cm">-- Works inside row context (calculated columns or SUMX iterators)</span></code></pre>
+
+    <h3>RELATEDTABLE — One to Many</h3>
+    <pre><code><span class="cm">-- From Products table (one), count related Sales rows (many)</span>
+Order Count = <span class="fn">COUNTROWS</span>( <span class="fn">RELATEDTABLE</span>( <span class="tbl">Sales</span> ) )</code></pre>
+
+    <h3>EARLIER — Nested row context</h3>
+    <pre><code><span class="cm">-- Rank within each group using EARLIER</span>
+Rank in Category =
+<span class="fn">COUNTROWS</span>(
+    <span class="fn">FILTER</span>(
+        <span class="tbl">Products</span>,
+        <span class="tbl">Products</span>[<span class="col">Category</span>] = <span class="fn">EARLIER</span>( <span class="tbl">Products</span>[<span class="col">Category</span>] ) &&
+        <span class="tbl">Products</span>[<span class="col">Sales</span>] >= <span class="fn">EARLIER</span>( <span class="tbl">Products</span>[<span class="col">Sales</span>] )
+    )
+)
+<span class="cm">-- EARLIER() refers to the outer row context</span></code></pre>
+  </section>
+
+  <!-- ADVANCED -->
+  <section id="advanced">
+    <div class="section-header">
+      <div class="section-number">08</div>
+      <div>
+        <span class="level-badge badge-advanced">Advanced</span>
+        <h2>Advanced Functions</h2>
+      </div>
+    </div>
+
+    <h3>CALCULATETABLE</h3>
+    <pre><code><span class="cm">-- Returns a filtered TABLE (not a scalar value)</span>
+Top Products Table =
+<span class="fn">CALCULATETABLE</span>(
+    <span class="tbl">Products</span>,
+    <span class="tbl">Products</span>[<span class="col">Category</span>] = <span class="str">"Electronics"</span>,
+    <span class="tbl">Products</span>[<span class="col">Price</span>] > <span class="num">500</span>
+)</code></pre>
+
+    <h3>TOPN</h3>
+    <pre><code><span class="cm">-- Get the top 5 products by sales</span>
+Top 5 Revenue :=
+<span class="fn">CALCULATE</span>(
+    <span class="fn">SUM</span>( <span class="tbl">Sales</span>[<span class="col">Revenue</span>] ),
+    <span class="fn">TOPN</span>( <span class="num">5</span>, <span class="fn">ALL</span>( <span class="tbl">Products</span> ), [Total Sales] )
+)</code></pre>
+
+    <h3>SUMMARIZE & ADDCOLUMNS</h3>
+    <pre><code><span class="cm">-- SUMMARIZE groups data like SQL GROUP BY</span>
+Category Summary =
+<span class="fn">SUMMARIZE</span>(
+    <span class="tbl">Sales</span>,
+    <span class="tbl">Products</span>[<span class="col">Category</span>],
+    <span class="str">"Total Revenue"</span>, <span class="fn">SUM</span>( <span class="tbl">Sales</span>[<span class="col">Revenue</span>] )
+)
+
+<span class="cm">-- ADDCOLUMNS adds computed columns to a table</span>
+Enriched =
+<span class="fn">ADDCOLUMNS</span>(
+    <span class="fn">SUMMARIZE</span>( <span class="tbl">Sales</span>, <span class="tbl">Products</span>[<span class="col">Category</span>] ),
+    <span class="str">"Category Sales"</span>, <span class="fn">CALCULATE</span>( <span class="fn">SUM</span>( <span class="tbl">Sales</span>[<span class="col">Revenue</span>] ) )
+)</code></pre>
+
+    <h3>USERELATIONSHIP — Activating Inactive Relationships</h3>
+    <pre><code><span class="cm">-- When you have multiple date columns (OrderDate vs ShipDate)</span>
+<span class="cm">-- and only one relationship can be active at a time</span>
+
+Sales by Ship Date :=
+<span class="fn">CALCULATE</span>(
+    <span class="fn">SUM</span>( <span class="tbl">Sales</span>[<span class="col">Revenue</span>] ),
+    <span class="fn">USERELATIONSHIP</span>( <span class="tbl">Sales</span>[<span class="col">ShipDate</span>], <span class="tbl">Calendar</span>[<span class="col">Date</span>] )
+)</code></pre>
+
+    <h3>SELECTEDVALUE & HASONEVALUE</h3>
+    <pre><code><span class="cm">-- Returns the single selected value (or alternate if multiple)</span>
+Selected Year :=
+<span class="fn">SELECTEDVALUE</span>( <span class="tbl">Calendar</span>[<span class="col">Year</span>], <span class="str">"All Years"</span> )
+
+<span class="cm">-- Use HASONEVALUE to check if a single value is filtered</span>
+Dynamic Title :=
+<span class="fn">IF</span>(
+    <span class="fn">HASONEVALUE</span>( <span class="tbl">Products</span>[<span class="col">Category</span>] ),
+    <span class="str">"Sales for: "</span> & <span class="fn">VALUES</span>( <span class="tbl">Products</span>[<span class="col">Category</span>] ),
+    <span class="str">"Total Sales - All Categories"</span>
+)</code></pre>
+
+    <h3>CROSSFILTER</h3>
+    <pre><code><span class="cm">-- Change cross-filter direction dynamically</span>
+Customers with Purchases :=
+<span class="fn">CALCULATE</span>(
+    <span class="fn">DISTINCTCOUNT</span>( <span class="tbl">Sales</span>[<span class="col">CustomerID</span>] ),
+    <span class="fn">CROSSFILTER</span>( <span class="tbl">Sales</span>[<span class="col">CustomerID</span>], <span class="tbl">Customers</span>[<span class="col">CustomerID</span>], <span class="kw">BOTH</span> )
+)</code></pre>
+  </section>
+
+  <!-- VARIABLES -->
+  <section id="variables">
+    <div class="section-header">
+      <div class="section-number">09</div>
+      <div>
+        <span class="level-badge badge-intermediate">Intermediate</span>
+        <h2>Variables (VAR / RETURN)</h2>
+      </div>
+    </div>
+
+    <p>Variables make DAX formulas readable, easier to debug, and more performant (a variable is evaluated only once).</p>
+
+    <pre><code><span class="cm">-- Always use VAR...RETURN for readable, efficient DAX</span>
+YoY Growth % :=
+<span class="kw">VAR</span> CurrentSales = <span class="fn">SUM</span>( <span class="tbl">Sales</span>[<span class="col">Revenue</span>] )
+<span class="kw">VAR</span> LastYearSales =
+    <span class="fn">CALCULATE</span>(
+        <span class="fn">SUM</span>( <span class="tbl">Sales</span>[<span class="col">Revenue</span>] ),
+        <span class="fn">SAMEPERIODLASTYEAR</span>( <span class="tbl">Calendar</span>[<span class="col">Date</span>] )
+    )
+<span class="kw">VAR</span> Growth = <span class="fn">DIVIDE</span>( CurrentSales - LastYearSales, LastYearSales, <span class="num">0</span> )
+<span class="kw">RETURN</span>
+    <span class="fn">IF</span>( <span class="fn">ISBLANK</span>( LastYearSales ), <span class="kw">BLANK</span>(), Growth )
+
+<span class="cm">-- Variables can hold tables too!</span>
+Top Customers Revenue :=
+<span class="kw">VAR</span> TopCustomers =
+    <span class="fn">TOPN</span>( <span class="num">10</span>, <span class="fn">ALL</span>( <span class="tbl">Customers</span> ), [Total Sales] )
+<span class="kw">RETURN</span>
+    <span class="fn">CALCULATE</span>( <span class="fn">SUM</span>( <span class="tbl">Sales</span>[<span class="col">Revenue</span>] ), TopCustomers )</code></pre>
+  </section>
+
+  <!-- TIPS -->
+  <section id="tips">
+    <div class="section-header">
+      <div class="section-number">10</div>
+      <div>
+        <span class="level-badge badge-advanced">Best Practices</span>
+        <h2>DAX Best Practices</h2>
+      </div>
+    </div>
+
+    <table>
+      <thead>
+        <tr><th>Practice</th><th>Why</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Use <code>DIVIDE()</code> instead of <code>/</code></td><td>Handles divide-by-zero gracefully</td></tr>
+        <tr><td>Use <code>VAR / RETURN</code></td><td>Improves readability and performance</td></tr>
+        <tr><td>Prefer Measures over Calculated Columns</td><td>Measures are dynamic, don't consume memory</td></tr>
+        <tr><td>Avoid <code>FILTER(ALL(...))</code> for simple filters</td><td>Use direct predicates in CALCULATE instead</td></tr>
+        <tr><td>Always have a Date Table</td><td>Required for Time Intelligence functions</td></tr>
+        <tr><td>Use <code>ISBLANK()</code> not <code>= BLANK()</code></td><td>More reliable blank detection</td></tr>
+        <tr><td>Avoid EARLIER when possible</td><td>Use SUMX + FILTER pattern instead</td></tr>
+        <tr><td>Avoid bi-directional relationships widely</td><td>Can cause ambiguity; use CROSSFILTER selectively</td></tr>
+      </tbody>
+    </table>
+
+    <div class="divider"></div>
+
+    <h3>Quick Reference: Function Families</h3>
+    <table>
+      <thead>
+        <tr><th>Category</th><th>Functions</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Aggregation</td><td>SUM, AVERAGE, MIN, MAX, COUNT, COUNTA, DISTINCTCOUNT</td></tr>
+        <tr><td>Iterator</td><td>SUMX, AVERAGEX, MAXX, MINX, COUNTX, RANKX</td></tr>
+        <tr><td>Filter</td><td>CALCULATE, CALCULATETABLE, FILTER, ALL, ALLEXCEPT, ALLSELECTED</td></tr>
+        <tr><td>Time Intelligence</td><td>DATESYTD, DATESQTD, DATESMTD, SAMEPERIODLASTYEAR, DATEADD, DATESINPERIOD, PARALLELPERIOD</td></tr>
+        <tr><td>Relationship</td><td>RELATED, RELATEDTABLE, USERELATIONSHIP, CROSSFILTER</td></tr>
+        <tr><td>Table</td><td>SUMMARIZE, ADDCOLUMNS, TOPN, UNION, INTERSECT, EXCEPT, ROW</td></tr>
+        <tr><td>Logical</td><td>IF, SWITCH, AND, OR, NOT, IFERROR, ISBLANK, ISEMPTY</td></tr>
+        <tr><td>Text</td><td>CONCATENATE, LEFT, RIGHT, MID, LEN, UPPER, LOWER, TRIM, FORMAT, SUBSTITUTE</td></tr>
+        <tr><td>Date</td><td>TODAY, NOW, YEAR, MONTH, DAY, DATEDIFF, EOMONTH, DATE, DATEVALUE</td></tr>
+        <tr><td>Info</td><td>HASONEVALUE, SELECTEDVALUE, VALUES, ISFILTERED, ISCROSSFILTERED</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+</div>
+
+<footer>
+  DAX Reference Guide · Power BI · Beginner to Advanced
+</footer>
+
+</body>
+</html>
