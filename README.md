@@ -67,4 +67,5 @@ Focused on:
 
 ## 📬 Connect
 
-Feel free to connect on LinkedIn to discuss Data Analytics, DAX, and AI.# DAX-Query-
+Feel free to connect on LinkedIn to discuss Data Analytics, DAX, and AI.
+
